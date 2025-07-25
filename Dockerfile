@@ -1,26 +1,20 @@
-FROM node:lts-buster
+# Use official Node.js image
+FROM node:20-buster
 
-# Correction des sources et installation sécurisée des paquets
-RUN sed -i 's|http://deb.debian.org|http://archive.debian.org|g' /etc/apt/sources.list && \
-    sed -i 's|security.debian.org|archive.debian.org|g' /etc/apt/sources.list && \
-    apt-get update || true && \
-    apt-get -o Acquire::Check-Valid-Until=false update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-        ffmpeg \
-        imagemagick \
-        webp \
-        libwebp-dev && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+# Set the working directory inside the container
+WORKDIR /app
 
-WORKDIR /usr/src/app
+# Copy package.json and package-lock.json to the container
+COPY package*.json ./
 
-COPY package.json .
+# Install the application dependencies
+RUN npm install && npm install -g pm2
 
-RUN npm install && npm install -g qrcode-terminal pm2
-
+# Copy the rest of the application files into the container
 COPY . .
 
-EXPOSE 5000
+# Expose the port your app will be running on
+EXPOSE 8000
 
+# Command to run the app
 CMD ["npm", "start"]
