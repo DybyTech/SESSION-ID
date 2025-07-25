@@ -1,20 +1,26 @@
-# Use official Node.js image
-FROM node:20-buster
+# Utiliser une version Debian stable encore supportée
+FROM node:lts-bullseye
 
-# Set the working directory inside the container
-WORKDIR /app
+# Mise à jour et installation des dépendances système
+RUN apt-get update && \
+  apt-get install -y ffmpeg imagemagick webp && \
+  apt-get upgrade -y && \
+  rm -rf /var/lib/apt/lists/*
 
-# Copy package.json and package-lock.json to the container
-COPY package*.json ./
+# Définir le répertoire de travail
+WORKDIR /usr/src/app
 
-# Install the application dependencies
-RUN npm install && npm install -g pm2
+# Copier le fichier de dépendances et installer
+COPY package.json .
 
-# Copy the rest of the application files into the container
+# Installer les dépendances Node.js (incluant qrcode-terminal et pm2)
+RUN npm install && npm install -g qrcode-terminal pm2
+
+# Copier le reste du code source
 COPY . .
 
-# Expose the port your app will be running on
-EXPOSE 8000
+# Exposer le port utilisé par ton app
+EXPOSE 5000
 
-# Command to run the app
+# Lancer l'application
 CMD ["npm", "start"]
